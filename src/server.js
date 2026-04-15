@@ -1,8 +1,11 @@
 /**
+ * Student: Odalson Toussaint 
+ * Expense Tracker App - DevOps Project
  * Server Entry Point
  * Express.js application for Expense Tracker
  * Module 8 - Expense Tracker - Node.js Implementation
- */
+ 
+*/
 
 const express = require('express');
 const bodyParser = require('body-parser');
