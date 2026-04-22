@@ -56,7 +56,7 @@ COPY ???
 #
 # Note: EXPOSE est informatif (pas obligatoire), mais bon pour la documentation conteneur
 # Le port réel est mappé dans docker-compose.yml
-EXPOSE ???
+EXPOSE 
 
 # ========================================================================
 # TÂCHE 7: Commande de démarrage du conteneur
