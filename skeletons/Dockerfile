@@ -14,8 +14,7 @@
 #   - Variante complet: Tout inclus (~900MB)
 #
 # Conseil pour débutants: Choisir la variante la plus légère pour commencer
-FROM node:18-alpine
-
+FROM node:20-alpine
 
 # ========================================================================
 # TÂCHE 2: Répertoire de travail du conteneur
@@ -23,13 +22,14 @@ FROM node:18-alpine
 # C'est comme "cd" - tous les fichiers et commandes utiliseront ce dossier
 # Conseil: Utiliser un chemin absolu dans le conteneur, pas à la racine
 WORKDIR /app
+
 # ========================================================================
 # TÂCHE 3 & 4: Installer les dépendances (2 étapes)
 # ========================================================================
 # ÉTAPE 3: Copier les fichiers de dépendances
 # Quels fichiers définissent les dépendances Node.js?
 # Conseil: Dois-je copier package.json? Dois-je copier le lock file?
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
 # ÉTAPE 4: Installer les dépendances
 # Deux commandes disponibles: npm install vs npm ci
@@ -57,13 +57,14 @@ COPY . .
 # Note: EXPOSE est informatif (pas obligatoire), mais bon pour la documentation conteneur
 # Le port réel est mappé dans docker-compose.yml
 EXPOSE 3000
+
 # ========================================================================
 # TÂCHE 7: Commande de démarrage du conteneur
 # ========================================================================
 # Que doit-il se passer quand le conteneur démarre?
 # Conseil: Regardez package.json → scripts pour voir les valeurs disponibles
 # Format: CMD ["commande", "arg1", "arg2", ...]
-CMD ["npm", "start"]
+CMD ["npm"start"]
 
 # ========================================================================
 # NOTES PÉDAGOGIQUES (de Module 5-6)
