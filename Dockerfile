@@ -46,7 +46,7 @@ RUN npm ci
 # Conseil: Structurez bien pour ne pas copier node_modules/ ou .git/
 #
 # Astuce: Un fichier .dockerignore permet de spécifier les fichiers à ignorer
-COPY . .
+COPY package*.json ./
 
 # ========================================================================
 # TÂCHE 6: Exposer le port
