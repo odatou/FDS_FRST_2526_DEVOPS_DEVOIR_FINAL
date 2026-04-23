@@ -6,17 +6,16 @@
 # SECTION 1: DÉCLENCHEURS (TRIGGERS)
 # ============================================================================
 # Quand ce workflow s'exécute-t-il?
-name: ??? # Tâche: Donnez un nom au pipeline (ex: "Expense Tracker CI/CD")
+name: Expense Tracker CI/CD  # Tâche: Donnez un nom au pipeline (ex: "Expense Tracker CI/CD")
 
 on:
   # Déclencheur 1: Quand du code est poussé (push)
   push:
-    branches: [???]  # Tâche: Quelles branches déclencher? Conseil: Incluez main et branches de features
+    branches: [main, features/*]  # Tâche: Quelles branches déclencher? Conseil: Incluez main et branches de features
   
   # Déclencheur 2: Quand une pull request est créée
   pull_request:
-    branches: [???]  # Tâche: Quelles branches pour les PR? Conseil: Au minimum la branche principale
-
+    branches: [main]  # Tâche: Quelles branches pour les PR? Conseil: Au minimum la branche principale
 # ============================================================================
 # SECTION 2: JOBS (TRAVAUX)
 # ============================================================================
@@ -38,7 +37,7 @@ jobs:
   test-and-build:
     # Machine sur laquelle ce job s'exécute
     # GitHub Actions propose plusieurs runners: ubuntu, windows, macos
-    runs-on: ???  # Tâche: Quel runner choisir? Conseil: Linux est le standard pour CI/CD
+    runs-on: ubuntu-latest  # Tâche: Quel runner choisir? Conseil: Linux est le standard pour CI/CD
     
     # Étapes du job (exécutées sequentiellement)
     steps:
@@ -50,7 +49,7 @@ jobs:
       # Que fait cette action?
       #   - Clone le repository GitHub
       #   - Met le code à disposition du job
-      - uses:  ???  # Tâche: Quelle action GitHub pour cloner le code? Conseil: Utilisez la version 4
+      - uses:  actions/checkout@v4  # Tâche: Quelle action GitHub pour cloner le code? Conseil: Utilisez la version 4
       
       
       # ====================================================================
@@ -63,8 +62,8 @@ jobs:
       #   - npm cache = réutiliser les dépendances téléchargées précédemment
       - uses: actions/setup-node@v4
         with:
-          node-version: ???  # Tâche: Quelle version Node.js? Conseil: Vérifiez .node-version ou package.json
-          cache: ???         # Tâche: Quelle dépendance manager cacher? Conseil: npm, yarn, ou pnpm
+          node-version: 18  # Tâche: Quelle version Node.js? Conseil: Vérifiez .node-version ou package.json
+          cache: npm         # Tâche: Quelle dépendance manager cacher? Conseil: npm, yarn, ou pnpm
       
       
       # ====================================================================
@@ -74,7 +73,7 @@ jobs:
       # Deux options: npm install (installe et peut mettre à jour) vs npm ci (installe précisément)
       # Pour CI/CD: Préférez l'option DÉTERMINISTE (même résultat à chaque build)
       # Module 3-4: Automatisation cohérente
-      - run: ???  # Tâche: Quelle commande? Conseil: npm ?? (2 lettres après npm)
+      - run: npm ci  # Tâche: Quelle commande? Conseil: npm ci (2 lettres après npm)
       
       
       # ====================================================================
@@ -84,7 +83,7 @@ jobs:
       # Regardez package.json → scripts → Quel script lance les tests?
       # Module 4: Automatiser les tests dans le pipeline
       # If any test fails → job fails → pipeline RED ❌
-      - run: ???  # Tâche: Quelle commande lance les tests? Conseil: npm [script-name]
+      - run: npm test  # Tâche: Quelle commande lance les tests? Conseil: npm [script-name]
   
   # ========================================================================
   # JOB 2: dockerfile-verify - Vérifier que le Dockerfile fonctionne
@@ -93,16 +92,15 @@ jobs:
   # Modules: 6 (Docker en pratique)
   dockerfile-verify:
     # Machine
-    runs-on: ???  # Tâche: Quel runner? Conseil: Même que test-and-build
+    runs-on: ubuntu-latest  # Tâche: Quel runner? Conseil: Même que test-and-build
     
     # Ce job dépend du job défini ci-dessus. 
     # Signification: Ne pas lancer dockerfile-verify tant que test-and-build n'est pas terminé
-    needs: ???  # Tâche: Quelle est la dépendance? Conseil: Le nom du job précédent
-
+    needs: test-and-build  # Tâche: Quelle est la dépendance? Conseil: Le nom du job précédent
     
     steps:
       # Récupérer le code
-      - uses: ???  # Tâche: Quelle action pour cloner le code? Conseil: Même que test-and-build
+      - uses: actions/checkout@v4  # Tâche: Quelle action pour cloner le code? Conseil: Même que test-and-build
       
       
       # ====================================================================
@@ -112,7 +110,7 @@ jobs:
       # -t [nom:version] = Nommer et versionner l'image
       # . = Utiliser le répertoire courant comme contexte de build
       - name: Build Docker image
-        run: ??? # Tâche: Quelle commande pour construire l'image? 
+        run: docker build -t expense-tracker .  # Tâche: Quelle commande pour construire l'image? 
          
       
       
@@ -128,7 +126,7 @@ jobs:
       #   --name = Identifier le conteneur
       # Module 6: Docker — Exécuter des conteneurs
       - name: Start Docker container
-        run: ??? # Tâche: Quelle commande pour lancer le conteneur? 
+        run: docker run --rm -d -p 3000:3000 --name expense-tracker expense-tracker  # Tâche: Quelle commande pour lancer le conteneur? 
       
       
       # ====================================================================
@@ -150,7 +148,7 @@ jobs:
       # Conseil: Quel endpoint sa-vous confirmer que l'app est vivante? 
       #          Regardez src/server.js pour les routes disponibles
       - name: Verify application is responding
-        run: ??? -f http://localhost:???/??? || exit 1
+        run: curl -f http://localhost:3000/health || exit 1
           # Tâche: Complétez la commande curl avec le port approprié
           # Tâche: Complétez l'URL avec l'endpoint approprié
       
@@ -161,7 +159,7 @@ jobs:
       # docker stop = Arrêter un conteneur en cours d'exécution
       # Nettoyage: libérer le port 3000 pour les prochains tests
       - name: Stop Docker container
-        run: ??? # Tâche: Quelle commande pour arrêter le conteneur? Conseil: docker stop [nom_conteneur]
+        run: docker stop expense-tracker  # Tâche: Quelle commande pour arrêter le conteneur? Conseil: docker stop [nom_conteneur]
     
   
   # ========================================================================
@@ -171,11 +169,11 @@ jobs:
   # Modules: 7 (Docker Compose multi-conteneurs)
   docker-compose-verify:
     # Machine
-    runs-on: ???  # Tâche: Quel runner? Conseil: Cohérent avec les autres jobs
+    runs-on: ubuntu-latest  # Tâche: Quel runner? Conseil: Cohérent avec les autres jobs
     
     # Ce job attend les deux précédents
     # Dépendances: Ce job démarre après 1 ET 2
-    needs: ???  # Tâche: Quelles sont les dépendances? Conseil: Les noms des deux jobs précédents
+    needs: [test-and-build, dockerfile-verify]  # Tâche: Quelles sont les dépendances? Conseil: Les noms des deux jobs précédents
     
     
     # ====================================================================
@@ -185,16 +183,16 @@ jobs:
     # Module 7: Docker Compose — Configuration via variables
     # Conseil: Trouvez les valeurs dans docker-compose.yml ou votre configuration
     env:
-      DB_HOST: ???          # Tâche: Service name dans docker-compose? Conseil: Pas 'localhost'
-      DB_PORT: ???          # Tâche: Port PostgreSQL? Conseil: Standard database port
-      DB_NAME: ${{ secrets.??? }}        # Variable secrète depuis GitHub
-      DB_USER: ${{ secrets.??? }}        # Variable secrète depuis GitHub
-      DB_PASSWORD: ${{ secrets.??? }}  # Variable secrète depuis GitHub
+      DB_HOST: postgres           # Tâche: Service name dans docker-compose? Conseil: Pas 'localhost'
+      DB_PORT: 5432          # Tâche: Port PostgreSQL? Conseil: Standard database port
+      DB_NAME: ${{ secrets.DB_NAME }}        # Variable secrète depuis GitHub
+      DB_USER: ${{ secrets.DB_USER }}        # Variable secrète depuis GitHub
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}  # Variable secrète depuis GitHub
       NODE_ENV: production
     
     steps:
       # Récupérer le code
-      - uses: ??? # Tâche: Quelle action pour cloner le code? Conseil: Même que les autres jobs
+      - uses: actions/checkout@v4 # Tâche: Quelle action pour cloner le code? Conseil: Même que les autres jobs
       
       
       # ====================================================================
@@ -206,9 +204,9 @@ jobs:
       # Module 4: CI/CD — Gestion des secrets et configuration
       - name: 🔍 Verify GitHub Secrets are configured
         env:
-          DB_PASSWORD_CHECK: ${{ secrets.??? }}
-          DB_USER_CHECK: ${{ secrets.??? }}
-          DB_NAME_CHECK: ${{ secrets.??? }}
+          DB_PASSWORD_CHECK: ${{ secrets.DB_PASSWORD }}
+          DB_USER_CHECK: ${{ secrets.DB_USER }}
+          DB_NAME_CHECK: ${{ secrets.DB_NAME }}
         run: |
           echo "========================================="
           echo "🔍 Checking GitHub Secrets Configuration"
@@ -270,7 +268,7 @@ jobs:
       # Flags disponibles: up, down, logs, ps
       # Module 7: Docker Compose — Orchestrer multi-conteneurs
       - name: Start services with docker compose
-        run: ???  # Tâche: Quelle commande + flags? Conseil: Démarrer en arrière-plan
+        run: docker compose up -d  # Tâche: Quelle commande + flags? Conseil: Démarrer en arrière-plan
       
       
       # ====================================================================
@@ -289,7 +287,7 @@ jobs:
       # L'app communique maintenant avec PostgreSQL (plus réaliste)
       # Module 7: Tester l'orchestration
       - name: Verify web application is responding
-        run: ??? -f http://localhost:3000/??? || exit 1
+        run: curl -f http://localhost:3000/ || exit 1
           # Tâche : Quelle commande? 
           # Tâche: Quel endpoint? Conseil: Même que dockerfile-verify
       
@@ -301,7 +299,7 @@ jobs:
       # Si la connexion échoue, l'app ne répondrait pas correctement
       # Module 7: Communication inter-services Docker
       - name: Check database connection
-        run: ??? -f http://localhost:3000/??? | grep -q "connected" || echo "Database initialized successfully"
+        run: curl -f http://localhost:3000/db-status | grep -q "connected" || echo "Database initialized successfully"
        # Tâche: Quelle commande? Conseil: Même que l'étape précédente mais vérifiez la réponse pour confirmer la connexion à la DB
       
       # ====================================================================
@@ -311,7 +309,7 @@ jobs:
       # Nettoyage: éviter de laisser des processus/ports actifs
       # Module 7: Gestion du cycle de vie docker-compose
       - name: Stop all services
-        run: ??? # Tâche: Quelle commande pour arrêter tous les services? 
+        run: docker compose down  # Tâche: Quelle commande pour arrêter tous les services? 
 
 
 
