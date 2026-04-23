@@ -1,6 +1,6 @@
 /**
- * Student: Odalson Toussaint 
- * Expense Tracker App - DevOps Project
+ * Student: Odalson Toussaint - Expense Tracker App
+ *  Expense Tracker App - DevOps Project
  * Server Entry Point
  * Express.js application for Expense Tracker
  * Module 8 - Expense Tracker - Node.js Implementation
